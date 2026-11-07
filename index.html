@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Majdoor Setu - Connecting Work and Workers</title>
+<meta name="theme-color" content="#ea580c" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Majdoor Setu" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<style>
+  :root {
+    --primary: #ea580c;
+    --primary-dark: #c2410c;
+    --secondary: #0f766e;
+    --bg: #fff7ed;
+    --card: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --success: #16a34a;
+    --danger: #dc2626;
+    --radius: 14px;
+    --shadow: 0 6px 20px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    padding: 22px 16px 60px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.9rem; letter-spacing: .5px; }
+  header p { opacity: .92; margin-top: 4px; }
+  .container { max-width: 1100px; margin: -40px auto 40px; padding: 0 16px; }
+
+  .tabs {
+    display: flex; gap: 8px; background: var(--card);
+    padding: 8px; border-radius: var(--radius); box-shadow: var(--shadow);
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1; min-width: 140px; padding: 12px; border: none; border-radius: 10px;
+    background: transparent; font-size: 1rem; font-weight: 600; cursor: pointer; color: var(--muted);
+  }
+  .tab-btn.active { background: var(--primary); color: #fff; }
+
+  .panel { display: none; margin-top: 20px; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1.25rem; margin-bottom: 14px; color: var(--primary-dark); }
+
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  label { display: block; font-size: .9rem; font-weight: 600; margin-bottom: 4px; color: #374151; }
+  input, select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: .98rem; background: #fff; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
+  textarea { resize: vertical; min-height: 70px; }
+  .hint { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px;
+    border: 1px solid var(--border); border-radius: 999px; cursor: pointer; font-size: .9rem; user-select: none;
+    background: #fff;
+  }
+  .chip input { width: auto; }
+  .chip:has(input:checked) { background: #ffedd5; border-color: var(--primary); color: var(--primary-dark); font-weight: 600; }
+
+  .btn {
+    display: inline-block; padding: 11px 18px; border: none; border-radius: 10px;
+    background: var(--primary); color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer;
+    transition: transform .1s, background .2s;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:active { transform: scale(.98); }
+  .btn.secondary { background: var(--secondary); }
+  .btn.secondary:hover { background: #115e59; }
+  .btn.ghost { background: #fff; color: var(--primary-dark); border: 1px solid var(--primary); }
+  .btn.small { padding: 7px 12px; font-size: .85rem; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+  .error { color: var(--danger); font-size: .88rem; margin-top: 10px; display: none; }
+  .error.show { display: block; }
+  .success { color: var(--success); font-weight: 600; margin-top: 10px; display: none; }
+  .success.show { display: block; }
+
+  .filters { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); align-items: end; }
+
+  .results-head { display: flex; justify-content: space-between; align-items: center; margin: 18px 0 10px; flex-wrap: wrap; gap: 8px; }
+  .results-head span { color: var(--muted); font-size: .9rem; }
+
+  .list { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .item {
+    background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 18px; border-left: 5px solid var(--primary); position: relative;
+  }
+  .item.job { border-left-color: var(--secondary); }
+  .item h3 { font-size: 1.1rem; margin-bottom: 4px; }
+  .item .meta { font-size: .88rem; color: var(--muted); margin-bottom: 8px; }
+  .badge {
+    display: inline-block; font-size: .75rem; padding: 3px 9px; border-radius: 999px;
+    background: #f3f4f6; color: #374151; margin: 2px 4px 2px 0; font-weight: 600;
+  }
+  .badge.online { background: #dbeafe; color: #1e40af; }
+  .badge.offline { background: #dcfce7; color: #166534; }
+  .badge.avail { background: #fef9c3; color: #854d0e; }
+  .price { font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); margin: 8px 0; }
+  .price small { font-size: .8rem; color: var(--muted); font-weight: 500; }
+  .item p.desc { font-size: .9rem; color: #374151; margin: 6px 0 10px; }
+  .dist { font-size: .8rem; color: var(--secondary); font-weight: 700; }
+  .empty { text-align: center; color: var(--muted); padding: 30px; grid-column: 1 / -1; }
+  .note {
+    background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+    padding: 10px 14px; border-radius: 10px; font-size: .88rem; margin-top: 14px;
+  }
+  .actions-inline { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  a.call { text-decoration: none; }
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛠️ Majdoor Setu</h1>
+  <p>Your skill, your area, your work — all in one place</p>
+  <button id="installBtn" class="btn ghost" style="margin-top:12px;display:none;background:#fff;">📲 Install App</button>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="worker">👷 Worker</button>
+    <button class="tab-btn" data-tab="owner">🏠 Employer (Owner)</button>
+    <button class="tab-btn" data-tab="browse">🔍 Find Work / Workers</button>
+  </div>
+
+  <!-- ============ WORKER PANEL ============ -->
+  <section class="panel active" id="panel-worker">
+    <div class="card">
+      <h2>Create Your Profile</h2>
+      <form id="workerForm" novalidate>
+        <div class="grid">
+          <div>
+            <label for="wName">Full Name *</label>
+            <input id="wName" type="text" placeholder="e.g. Ramesh Kumar" />
+          </div>
+          <div>
+            <label for="wPhone">Mobile Number *</label>
+            <input id="wPhone" type="tel" placeholder="10 digit number" maxlength="10" />
+          </div>
+          <div>
+            <label for="wExp">Experience (years)</label>
+            <input id="wExp" type="number" min="0" max="50" placeholder="0" />
+          </div>
+          <div>
+            <label for="wCity">City *</label>
+            <input id="wCity" type="text" placeholder="e.g. Patna" />
+          </div>
+          <div>
+            <label for="wArea">Area / Locality *</label>
+            <input id="wArea" type="text" placeholder="e.g. Kankarbagh" />
+          </div>
+          <div>
+            <label for="wAvail">Availability</label>
+            <select id="wAvail">
+              <option value="available">Available now</option>
+              <option value="weekend">Weekends only</option>
+              <option value="busy">Busy</option>
+            </select>
+          </div>
+          <div>
+            <label for="wDaily">Daily Rate (₹/day) *</label>
+            <input id="wDaily" type="number" min="500" placeholder="Minimum 500" />
+            <div class="hint">Minimum ₹500 per day</div>
+          </div>
+          <div>
+            <label for="wHourly">Hourly Rate (₹/hour)</label>
+            <input id="wHourly" type="number" min="70" placeholder="Minimum 70" />
+            <div class="hint">Minimum ₹70 per hour (optional)</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <label>Your Skills *</label>
+          <div class="checkbox-group" id="wSkills"></div>
+        </div>
+
+        <div style="margin-top:14px">
+          <label>Work Type</label>
+          <div class="checkbox-group">
+            <label class="chip"><input type="checkbox" name="wType" value="offline" checked /> Offline (on-site / at home)</label>
+            <label class="chip"><input type="checkbox" name="wType" value="online" /> Online (remote)</label>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <label for="wBio">About You</label>
+          <textarea id="wBio" placeholder="Your experience, work details..."></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="useLocationW">📍 Use My Location</button>
+          <button type="submit" class="btn secondary">Save Profile</button>
+        </div>
+        <div class="hint" id="wCoordsHint"></div>
+        <div class="error" id="wError"></div>
+        <div class="success" id="wSuccess"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>My Saved Profiles</h2>
+      <div class="list" id="myWorkerList"></div>
+    </div>
+  </section>
+
+  <!-- ============ OWNER PANEL ============ -->
+  <section class="panel" id="panel-owner">
+    <div class="card">
+      <h2>Post a Job</h2>
+      <form id="jobForm" novalidate>
+        <div class="grid">
+          <div>
+            <label for="jTitle">Job Title *</label>
+            <input id="jTitle" type="text" placeholder="e.g. House painting" />
+          </div>
+          <div>
+            <label for="jSkill">Skill / Category *</label>
+            <select id="jSkill"></select>
+          </div>
+          <div>
+            <label for="jType">Work Type *</label>
+            <select id="jType">
+              <option value="offline">Offline (on-site / at home)</option>
+              <option value="online">Online (remote)</option>
+            </select>
+          </div>
+          <div>
+            <label for="jDuration">Job Length</label>
+            <select id="jDuration">
+              <option value="short">Short (1 day or a few hours)</option>
+              <option value="medium">Medium (1-2 weeks)</option>
+              <option value="long">Long (months or more)</option>
+            </select>
+          </div>
+          <div>
+            <label for="jCity">City *</label>
+            <input id="jCity" type="text" placeholder="e.g. Patna" />
+          </div>
+          <div>
+            <label for="jArea">Area / Locality *</label>
+            <input id="jArea" type="text" placeholder="e.g. Boring Road" />
+          </div>
+          <div>
+            <label for="jPayType">Payment Type *</label>
+            <select id="jPayType">
+              <option value="daily">Per Day (min ₹500)</option>
+              <option value="hourly">Per Hour (min ₹70)</option>
+            </select>
+          </div>
+          <div>
+            <label for="jBudget">Budget (₹) *</label>
+            <input id="jBudget" type="number" min="1" placeholder="e.g. 600" />
+            <div class="hint" id="jBudgetHint">Minimum ₹500 per day</div>
+          </div>
+          <div>
+            <label for="jDate">Needed From</label>
+            <input id="jDate" type="date" />
+          </div>
+          <div>
+            <label for="jContact">Contact Number *</label>
+            <input id="jContact" type="tel" maxlength="10" placeholder="10 digit number" />
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <label for="jDesc">Job Description</label>
+          <textarea id="jDesc" placeholder="What the job is, how many people needed, materials to bring..."></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn" id="useLocationJ">📍 Use My Location</button>
+          <button type="submit" class="btn secondary">Post Job</button>
+        </div>
+        <div class="hint" id="jCoordsHint"></div>
+        <div class="error" id="jError"></div>
+        <div class="success" id="jSuccess"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>My Posted Jobs</h2>
+      <div class="list" id="myJobList"></div>
+    </div>
+  </section>
+
+  <!-- ============ BROWSE PANEL ============ -->
+  <section class="panel" id="panel-browse">
+    <div class="card">
+      <h2>Filters</h2>
+      <div class="filters">
+        <div>
+          <label for="fMode">What are you looking for?</label>
+          <select id="fMode">
+            <option value="workers">Workers</option>
+            <option value="jobs">Jobs</option>
+          </select>
+        </div>
+        <div>
+          <label for="fSkill">Skill / Category</label>
+          <select id="fSkill"></select>
+        </div>
+        <div>
+          <label for="fCity">City / Area</label>
+          <input id="fCity" type="text" placeholder="e.g. Patna or Kankarbagh" />
+        </div>
+        <div>
+          <label for="fType">Work Type</label>
+          <select id="fType">
+            <option value="">All</option>
+            <option value="offline">Offline</option>
+            <option value="online">Online</option>
+          </select>
+        </div>
+        <div>
+          <label for="fMaxRate">Max Daily Rate (₹)</label>
+          <input id="fMaxRate" type="number" min="0" placeholder="e.g. 1000" />
+        </div>
+        <div>
+          <label for="fSort">Sort by</label>
+          <select id="fSort">
+            <option value="nearest">Nearest first</option>
+            <option value="cheap">Cheapest first</option>
+            <option value="exp">Most experience first</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="useLocationF">📍 Search Near My Location</button>
+        <button class="btn ghost" id="clearFilters">Clear Filters</button>
+      </div>
+      <div class="hint" id="fLocHint"></div>
+    </div>
+
+    <div class="results-head">
+      <strong id="resultTitle">Results</strong>
+      <span id="resultCount"></span>
+    </div>
+    <div class="list" id="resultList"></div>
+  </section>
+
+  <div class="note">
+    ⚠️ This is a prototype — data is saved only in this browser (localStorage). A real platform needs a backend, OTP login and verification.
+  </div>
+</div>
+
+<footer>© Majdoor Setu • Local work, local people</footer>
+
+<script>
+// ---------- PWA: service worker + install prompt ----------
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+let deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById("installBtn");
+  if (btn) btn.style.display = "inline-block";
+});
+window.addEventListener("appinstalled", () => {
+  const btn = document.getElementById("installBtn");
+  if (btn) btn.style.display = "none";
+  deferredInstallPrompt = null;
+});
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- CONSTANTS ----------
+  const MIN_DAILY = 500;
+  const MIN_HOURLY = 70;
+  const STORAGE_KEY = "majdoorSetu.v1";
+
+  const SKILLS = [
+    "Mason (Raj Mistri)", "Electrician", "Plumber", "Painter", "Carpenter",
+    "Welder", "Driver", "Helper / Labour", "Cook", "Cleaner / Housekeeping",
+    "Gardener", "AC / Fridge Technician", "Mobile Repair", "Computer Repair",
+    "Tailor", "Security Guard", "Loader / Packer", "Delivery Boy",
+    "Tuition Teacher (Offline)", "Tuition Teacher (Online)", "Babysitter / Nanny",
+    "Data Entry (Online)", "Graphic Design (Online)", "Other"
+  ];
+
+  // ---------- STORAGE ----------
+  function loadDB() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : { workers: [], jobs: [] };
+    } catch (e) {
+      return { workers: [], jobs: [] };
+    }
+  }
+  function saveDB(db) { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+  let db = loadDB();
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  // ---------- HELPERS ----------
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtRs = (n) => "₹" + Number(n).toLocaleString("en-IN");
+  const showMsg = (el, msg) => { el.textContent = msg; el.classList.add("show"); setTimeout(() => el.classList.remove("show"), 4000); };
+  const normalize = (s) => String(s || "").trim().toLowerCase();
+
+  function distanceKm(a, b) {
+    if (!a || !b) return null;
+    const R = 6371, toRad = d => d * Math.PI / 180;
+    const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+    const x = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  }
+
+  // Current location, used for distance sorting
+  let myCoords = null;
+
+  function getLocation(callback, hintEl) {
+    if (!navigator.geolocation) { hintEl.textContent = "Your browser does not support location."; return; }
+    hintEl.textContent = "Getting your location...";
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        myCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        hintEl.textContent = `Location found (${myCoords.lat.toFixed(3)}, ${myCoords.lng.toFixed(3)})`;
+        callback && callback(myCoords);
+      },
+      () => { hintEl.textContent = "Location permission denied. Please type your city/area instead."; },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  // ---------- BUILD UI ----------
+  function fillSkillSelect(sel, includeAll) {
+    sel.innerHTML = (includeAll ? '<option value="">All Skills</option>' : "") +
+      SKILLS.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  }
+  function buildSkillChips() {
+    $("wSkills").innerHTML = SKILLS.map(s =>
+      `<label class="chip"><input type="checkbox" name="wSkill" value="${esc(s)}" /> ${esc(s)}</label>`
+    ).join("");
+  }
+
+  fillSkillSelect($("jSkill"), false);
+  fillSkillSelect($("fSkill"), true);
+  buildSkillChips();
+
+  // ---------- TABS ----------
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      $("panel-" + btn.dataset.tab).classList.add("active");
+      if (btn.dataset.tab === "browse") runSearch();
+      renderMine();
+    });
+  });
+
+  // ---------- JOB BUDGET HINT ----------
+  function updateBudgetHint() {
+    const isDaily = $("jPayType").value === "daily";
+    $("jBudgetHint").textContent = isDaily ? `Minimum ₹${MIN_DAILY} per day` : `Minimum ₹${MIN_HOURLY} per hour`;
+    $("jBudget").min = isDaily ? MIN_DAILY : MIN_HOURLY;
+  }
+  $("jPayType").addEventListener("change", updateBudgetHint);
+  updateBudgetHint();
+
+  // ---------- LOCATION BUTTONS ----------
+  $("useLocationW").addEventListener("click", () => getLocation(() => {}, $("wCoordsHint")));
+  $("useLocationJ").addEventListener("click", () => getLocation(() => {}, $("jCoordsHint")));
+  $("useLocationF").addEventListener("click", () => getLocation(() => runSearch(), $("fLocHint")));
+
+  // ---------- WORKER FORM ----------
+  $("workerForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const err = $("wError");
+    const name = $("wName").value.trim();
+    const phone = $("wPhone").value.trim();
+    const city = $("wCity").value.trim();
+    const area = $("wArea").value.trim();
+    const daily = Number($("wDaily").value);
+    const hourlyRaw = $("wHourly").value.trim();
+    const hourly = hourlyRaw === "" ? null : Number(hourlyRaw);
+    const skills = [...document.querySelectorAll('input[name="wSkill"]:checked')].map(c => c.value);
+    const types = [...document.querySelectorAll('input[name="wType"]:checked')].map(c => c.value);
+
+    if (!name) return showMsg(err, "Please enter your name.");
+    if (!/^[6-9]\d{9}$/.test(phone)) return showMsg(err, "Please enter a valid 10 digit mobile number.");
+    if (!city || !area) return showMsg(err, "Please fill in both city and area.");
+    if (!skills.length) return showMsg(err, "Please select at least one skill.");
+    if (!types.length) return showMsg(err, "Please select a work type (Offline/Online).");
+    if (!daily || daily < MIN_DAILY) return showMsg(err, `Daily rate must be at least ₹${MIN_DAILY}.`);
+    if (hourly !== null && (isNaN(hourly) || hourly < MIN_HOURLY)) return showMsg(err, `Hourly rate must be at least ₹${MIN_HOURLY}.`);
+
+    db.workers.push({
+      id: uid(), name, phone, city, area,
+      exp: Number($("wExp").value) || 0,
+      avail: $("wAvail").value,
+      daily, hourly, skills, types,
+      bio: $("wBio").value.trim(),
+      coords: myCoords,
+      createdAt: Date.now()
+    });
+    saveDB(db);
+    e.target.reset();
+    updateBudgetHint();
+    showMsg($("wSuccess"), "Profile saved! ✅");
+    renderMine();
+  });
+
+  // ---------- OWNER FORM ----------
+  $("jobForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const err = $("jError");
+    const title = $("jTitle").value.trim();
+    const skill = $("jSkill").value;
+    const type = $("jType").value;
+    const city = $("jCity").value.trim();
+    const area = $("jArea").value.trim();
+    const payType = $("jPayType").value;
+    const budget = Number($("jBudget").value);
+    const contact = $("jContact").value.trim();
+
+    if (!title) return showMsg(err, "Please enter a job title.");
+    if (!city || !area) return showMsg(err, "Please fill in both city and area.");
+    if (!/^[6-9]\d{9}$/.test(contact)) return showMsg(err, "Please enter a valid 10 digit contact number.");
+    if (payType === "daily" && (!budget || budget < MIN_DAILY))
+      return showMsg(err, `Daily budget must be at least ₹${MIN_DAILY}.`);
+    if (payType === "hourly" && (!budget || budget < MIN_HOURLY))
+      return showMsg(err, `Hourly budget must be at least ₹${MIN_HOURLY}.`);
+
+    db.jobs.push({
+      id: uid(), title, skill, type,
+      duration: $("jDuration").value,
+      city, area, payType, budget,
+      date: $("jDate").value,
+      contact,
+      desc: $("jDesc").value.trim(),
+      coords: myCoords,
+      createdAt: Date.now()
+    });
+    saveDB(db);
+    e.target.reset();
+    updateBudgetHint();
+    showMsg($("jSuccess"), "Job posted! ✅");
+    renderMine();
+  });
+
+  // ---------- RENDER: MY LISTINGS ----------
+  function renderMine() {
+    const wl = $("myWorkerList"), jl = $("myJobList");
+    wl.innerHTML = db.workers.length ? "" : '<div class="empty">No profiles yet.</div>';
+    db.workers.forEach(w => {
+      wl.insertAdjacentHTML("beforeend", workerCard(w, true));
+    });
+    jl.innerHTML = db.jobs.length ? "" : '<div class="empty">No jobs posted yet.</div>';
+    db.jobs.forEach(j => {
+      jl.insertAdjacentHTML("beforeend", jobCard(j, true));
+    });
+  }
+
+  function workerCard(w, mine) {
+    const availLabel = { available: "Available", weekend: "Weekends only", busy: "Busy" }[w.avail];
+    const dist = (myCoords && w.coords) ? `<div class="dist">📏 ${distanceKm(myCoords, w.coords).toFixed(1)} km away</div>` : "";
+    return `
+      <div class="item">
+        <h3>${esc(w.name)} ${w.exp ? `<small style="color:#6b7280">• ${w.exp} yrs exp</small>` : ""}</h3>
+        <div class="meta">📍 ${esc(w.area)}, ${esc(w.city)}</div>
+        <div>${w.skills.map(s => `<span class="badge">${esc(s)}</span>`).join("")}</div>
+        <div>${w.types.map(t => `<span class="badge ${t}">${t === "online" ? "Online" : "Offline"}</span>`).join("")}
+             <span class="badge avail">${availLabel}</span></div>
+        <div class="price">${fmtRs(w.daily)} <small>/ day</small>
+          ${w.hourly ? ` &nbsp;|&nbsp; ${fmtRs(w.hourly)} <small>/ hour</small>` : ""}</div>
+        ${w.bio ? `<p class="desc">${esc(w.bio)}</p>` : ""}
+        ${dist}
+        <div class="actions-inline">
+          <a class="call" href="tel:${esc(w.phone)}"><button class="btn small secondary">📞 Call</button></a>
+          ${mine ? `<button class="btn small ghost" data-del-worker="${w.id}">Delete</button>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function jobCard(j, mine) {
+    const dur = { short: "Short job", medium: "Medium job", long: "Long-term job" }[j.duration];
+    const pay = j.payType === "daily" ? `${fmtRs(j.budget)} <small>/ day</small>` : `${fmtRs(j.budget)} <small>/ hour</small>`;
+    const dist = (myCoords && j.coords) ? `<div class="dist">📏 ${distanceKm(myCoords, j.coords).toFixed(1)} km away</div>` : "";
+    return `
+      <div class="item job">
+        <h3>${esc(j.title)}</h3>
+        <div class="meta">📍 ${esc(j.area)}, ${esc(j.city)}${j.date ? ` • 🗓️ ${esc(j.date)}` : ""}</div>
+        <div>
+          <span class="badge">${esc(j.skill)}</span>
+          <span class="badge ${j.type}">${j.type === "online" ? "Online" : "Offline"}</span>
+          <span class="badge">${dur}</span>
+        </div>
+        <div class="price">${pay}</div>
+        ${j.desc ? `<p class="desc">${esc(j.desc)}</p>` : ""}
+        ${dist}
+        <div class="actions-inline">
+          <a class="call" href="tel:${esc(j.contact)}"><button class="btn small secondary">📞 Contact</button></a>
+          ${mine ? `<button class="btn small ghost" data-del-job="${j.id}">Delete</button>` : ""}
+        </div>
+      </div>`;
+  }
+
+  // Delete handlers (event delegation)
+  document.addEventListener("click", e => {
+    const dw = e.target.closest("[data-del-worker]");
+    const dj = e.target.closest("[data-del-job]");
+    if (dw && confirm("Delete this profile?")) {
+      db.workers = db.workers.filter(w => w.id !== dw.dataset.delWorker);
+      saveDB(db); renderMine(); runSearch();
+    }
+    if (dj && confirm("Delete this job?")) {
+      db.jobs = db.jobs.filter(j => j.id !== dj.dataset.delJob);
+      saveDB(db); renderMine(); runSearch();
+    }
+  });
+
+  // ---------- SEARCH / FILTER ----------
+  function runSearch() {
+    const mode = $("fMode").value;
+    const skill = $("fSkill").value;
+    const city = normalize($("fCity").value);
+    const type = $("fType").value;
+    const maxRate = Number($("fMaxRate").value) || Infinity;
+    const sort = $("fSort").value;
+
+    let items = mode === "workers" ? db.workers.slice() : db.jobs.slice();
+
+    items = items.filter(it => {
+      if (skill) {
+        const skillList = mode === "workers" ? it.skills : [it.skill];
+        if (!skillList.includes(skill)) return false;
+      }
+      if (city) {
+        const hay = normalize(it.city + " " + it.area);
+        if (!hay.includes(city)) return false;
+      }
+      if (type) {
+        const types = mode === "workers" ? it.types : [it.type];
+        if (!types.includes(type)) return false;
+      }
+      if (maxRate !== Infinity) {
+        const dailyLike = mode === "workers" ? it.daily : (it.payType === "daily" ? it.budget : null);
+        if (dailyLike !== null && dailyLike > maxRate) return false;
+      }
+      return true;
+    });
+
+    const priceOf = it => mode === "workers" ? it.daily : it.budget;
+    items.sort((a, b) => {
+      if (sort === "cheap") return priceOf(a) - priceOf(b);
+      if (sort === "exp" && mode === "workers") return (b.exp || 0) - (a.exp || 0);
+      if (myCoords) {
+        const da = distanceKm(myCoords, a.coords), db2 = distanceKm(myCoords, b.coords);
+        if (da == null && db2 == null) return b.createdAt - a.createdAt;
+        if (da == null) return 1;
+        if (db2 == null) return -1;
+        return da - db2;
+      }
+      return b.createdAt - a.createdAt;
+    });
+
+    $("resultTitle").textContent = mode === "workers" ? "Workers" : "Available Jobs";
+    $("resultCount").textContent = `${items.length} result${items.length === 1 ? "" : "s"} found`;
+
+    const list = $("resultList");
+    if (!items.length) {
+      list.innerHTML = `<div class="empty">No results found. Try changing the filters.</div>`;
+      return;
+    }
+    list.innerHTML = items.map(it => mode === "workers" ? workerCard(it, false) : jobCard(it, false)).join("");
+  }
+
+  ["fMode", "fSkill", "fType", "fSort"].forEach(id => $(id).addEventListener("change", runSearch));
+  ["fCity", "fMaxRate"].forEach(id => $(id).addEventListener("input", runSearch));
+  $("clearFilters").addEventListener("click", () => {
+    $("fSkill").value = ""; $("fCity").value = ""; $("fType").value = "";
+    $("fMaxRate").value = ""; $("fSort").value = "nearest"; runSearch();
+  });
+
+  // ---------- PWA INSTALL BUTTON ----------
+  const installBtn = $("installBtn");
+  installBtn.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installBtn.style.display = "none";
+  });
+
+  // ---------- INIT ----------
+  renderMine();
+})();
+</script>
+</body>
+</html>
